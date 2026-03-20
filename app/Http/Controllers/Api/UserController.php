@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
@@ -112,5 +113,17 @@ class UserController extends Controller
         } else {
             return $this->failedResponse('User gagal dihapus!', 500);
         }
+    }
+
+    public function cek_token()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'success',
+            'data' => $user,
+            'status_code' => 200
+        ], 200);
     }
 }

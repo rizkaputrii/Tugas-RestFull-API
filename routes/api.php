@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Import semua Controller
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\MapelController;
@@ -22,13 +23,28 @@ use App\Http\Controllers\Api\JadwalController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Rute Login (Bebas diakses)
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::apiResource('/users', UserController::class);
-Route::apiResource('/guru', GuruController::class);
-Route::apiResource('/mapel', MapelController::class);
-Route::apiResource('/kelas', KelasController::class);
-Route::apiResource('/siswa', SiswaController::class);
-Route::apiResource('/jadwal', JadwalController::class);
+// SAFE METHODS (GET: index & show) - Bebas diakses
+Route::apiResource('/users', UserController::class)->only(['index', 'show']);
+Route::apiResource('/guru', GuruController::class)->only(['index', 'show']);
+Route::apiResource('/mapel', MapelController::class)->only(['index', 'show']);
+Route::apiResource('/kelas', KelasController::class)->parameters(['kelas' => 'kelas'])->only(['index', 'show']);
+Route::apiResource('/siswa', SiswaController::class)->only(['index', 'show']);
+Route::apiResource('/jadwal', JadwalController::class)->only(['index', 'show']);
+
+// UNSAFE METHODS (POST, PUT, DELETE) - Wajib menggunakan Token JWT
+Route::group(['middleware' => ['jwt.verify']], function() {
+    
+    // Rute cek token
+    Route::get('/cek-token', [UserController::class, 'cek_token']); 
+
+    // Rute yang dikunci
+    Route::apiResource('/users', UserController::class)->except(['index', 'show']);
+    Route::apiResource('/guru', GuruController::class)->except(['index', 'show']);
+    Route::apiResource('/mapel', MapelController::class)->except(['index', 'show']);
+    Route::apiResource('/kelas', KelasController::class)->parameters(['kelas' => 'kelas'])->except(['index', 'show']);
+    Route::apiResource('/siswa', SiswaController::class)->except(['index', 'show']);
+    Route::apiResource('/jadwal', JadwalController::class)->except(['index', 'show']);
+});
